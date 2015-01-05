@@ -62,13 +62,14 @@ def makelist(filename):
    deadline_date = ''
    nodelist      = []
    propdict      = dict()
-   
+
    for line in f:
        ctr += 1     
        hdng = re.search('^(\*+)\s(.*?)\s*$', line)
        if hdng:
           if heading:  # we are processing a heading line
              thisNode = Orgnode(level, heading, bodytext, tag1, alltags)
+             atleast_one = 1
              if sched_date:
                 thisNode.setScheduled(sched_date)
                 sched_date = ""
@@ -119,6 +120,10 @@ def makelist(filename):
                bodytext = bodytext + line
 
 
+   if level == 0:
+      ## Empty file
+      return nodelist
+
    # write out last node
    thisNode = Orgnode(level, heading, bodytext, tag1, alltags)
    thisNode.setProperties(propdict)   
@@ -127,7 +132,7 @@ def makelist(filename):
    if deadline_date:
       thisNode.setDeadline(deadline_date)
    nodelist.append( thisNode )
-              
+
    # using the list of TODO keywords found in the file
    # process the headings searching for TODO keywords
    for n in nodelist:
@@ -196,7 +201,10 @@ class Orgnode(object):
         Returns an integer corresponding to the level of the node.
         Top level (one asterisk) has a level of 1.
         """
-        return self.level
+        ret_level = ""
+        for i in range(self.level):
+           ret_level += "*"
+        return ret_level
 
     def Priority(self):
         """

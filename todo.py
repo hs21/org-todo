@@ -18,7 +18,9 @@ def print_priority(node, fd):
     if node.Priority() != "":
         print ("[#" + node.Priority() + "] ", end="", file=fd)
 
-def print_todo(node):
+def print_todo(node, idx):
+    if idx >= 0:
+        print("[" + str(idx) + "] ", end = "")
     print_chars_lvl(node.level - 1, '  ', sys.stdout)
     if node.Todo() == "TODO":
         print(" " + bcolors.FAIL + "( TODO ) " + "[" + node.Priority() + "] " \
@@ -59,39 +61,70 @@ def export(nodelist, fd):
 
 def todo_init(todofile):
     if os.path.isfile(todofile):
-        print("File exists")
+        print("TODO has already been initialized.")
     else:
-        print("File does not exist")
+        open("%s/%s" % (os.getcwd(), ORG_FILENAME), "w")
+        print("Initialized empty TODO in " + os.getcwd() + ".")
 
-def todo_list(nodelist):
+def todo_list(nodelist, printidx):
     id = 1
     for node in nodelist:
         # print_chars_lvl(node.level - 1, '\t', sys.stdout)
         # print ("[" + str(id) + "] " + node.headline)
-        print_todo(node)
+        if(printidx == 1):
+            print_todo(node, id)
+        else:
+            print_todo(node, -1)
         id = id + 1
 
 def todo_add(nodelist):
     print("--")
-    todo_list(nodelist)
+    todo_list(nodelist, 1)
+    print("Len = " + str(len(nodelist)))
 
-    index = int(input('Index: '))
-    headline = input('Headline: ')
+    index = input('Index [%d]: ' % (len(nodelist)))
+    if index == "":
+        index = str(len(nodelist) - 1)
+    print("Index = " + index)
+
+    headline = input('Headline []: ')
+
     body = input('Body: ')
-    level = input('Level: ')
-    priority = input('Priority: ')
-    todo = input('TODO: ')
+
+    level = input('Nest(N) / Append(A) [A]: ')
+    if level == "N":
+        if len(nodelist) == 0:
+            level = "*"
+        else:
+            level = "%s*" % nodelist[int(index)].Level()
+            for i in range(int(index), len(nodelist)):
+                if nodelist[i].Level() != level:
+                    break
+            index = str(i)
+    else:
+        if len(nodelist) == 0:
+            level = "*"
+        else:
+            level = nodelist[int(index)].Level()
+            index = str(int(index) + 1)
+
+    priority = input('Priority [A]: ')
+    if priority == "":
+        priority = "A"
+
+    todo = input('TODO/DONE [TODO]: ')
+    if todo == "":
+        todo = "TODO"
 
     node = Orgnode.Orgnode(level, headline, body, '', '')
     node.todo = todo
     node.prty = priority
 
-
     nodelist.insert(int(index), node)
-    todo_list(nodelist)
+    todo_list(nodelist, 0)
 
 def todo_rem(nodelist):
-    todo_list(nodelist)
+    todo_list(nodelist, 1)
     index = int(input('Index: '))
     nodelist.splice(index, 1)
 ##
@@ -108,7 +141,7 @@ todofile = locate_todofile()
 nodelist = Orgnode.makelist(todofile)
 
 if sys.argv[1] == "list":
-    todo_list(nodelist)
+    todo_list(nodelist, 0)
     exit(0)
 
 if sys.argv[1] == "add":
