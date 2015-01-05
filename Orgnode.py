@@ -97,9 +97,6 @@ def makelist(filename):
               kwlist = re.findall('([A-Z]+)\(', line)
               for kw in kwlist: todos[kw] = ""
 
-           if line[:1] != '#':
-               bodytext = bodytext + line
-
            if re.search(':PROPERTIES:', line): continue
            if re.search(':END:', line): continue
            prop_srch = re.search('^\s*:(.*?):\s*(.*?)\s*$', line)
@@ -115,9 +112,14 @@ def makelist(filename):
            if dd_re:
               deadline_date = datetime.date(int(dd_re.group(1)),
                                             int(dd_re.group(2)),
-                                            int(dd_re.group(3)) )
+                                            int(dd_re.group(3)))
+              continue
 
-   # write out last node              
+           if line[:1] != '#':
+               bodytext = bodytext + line
+
+
+   # write out last node
    thisNode = Orgnode(level, heading, bodytext, tag1, alltags)
    thisNode.setProperties(propdict)   
    if sched_date:
