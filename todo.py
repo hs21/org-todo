@@ -41,7 +41,21 @@ def print_todo(node, idx):
 ## Locate correct TODO file
 ##
 def locate_todofile():
-    return "%s/%s" % (os.getcwd(), ORG_FILENAME)
+    filename = "%s/%s" % (os.getcwd(), ORG_FILENAME)
+
+    if os.path.isfile(filename):
+        return filename
+
+    parts = os.path.split(os.getcwd())
+    while parts[1] != "":
+        filename = "%s/%s" % (parts[0], ORG_FILENAME)
+        if os.path.isfile(filename):
+            return filename
+        parts = os.path.split(parts[0])
+
+    print("No %s file found." % ORG_FILENAME)
+    exit(1)
+
     ## Set global variable pointing to correct todofile
 
 def print_chars_lvl(lvl, char, fd):
@@ -76,6 +90,23 @@ def todo_list(nodelist, printidx):
         else:
             print_todo(node, -1)
         id = id + 1
+
+def todo_mark(nodelist):
+    todo_list(nodelist, 1)
+    index = int(input('Index: ')) - 1
+    print(nodelist[index].Todo())
+
+    if nodelist[index].Todo() == "TODO":
+        answer = input("Mark as [DONE]: ")
+        todo = "DONE"
+    else:
+        answer = input("Mark as [TODO]: ")
+        todo = "TODO"
+
+    if answer == "":
+        answer = todo
+
+    nodelist[index].setTodo(answer)
 
 def todo_add(nodelist):
     print("--")
@@ -123,10 +154,22 @@ def todo_add(nodelist):
     nodelist.insert(int(index), node)
     todo_list(nodelist, 0)
 
+def todo_sort(nodelist):
+    nodelist.sort(key=lambda x:x.Todo(), reverse=True)
+
 def todo_rem(nodelist):
     todo_list(nodelist, 1)
     index = int(input('Index: '))
-    nodelist.splice(index, 1)
+    nodelist = nodelist[:index - 1] + nodelist[index:]
+    return nodelist
+
+def todo_grep(nodelist):
+    key = input("Enter key to search: ")
+    for node in nodelist:
+        if key.upper() in node.Heading().upper():
+            print_todo(node, -1)
+        elif key.upper() in node.Body().upper():
+            print_todo(node, -1)
 ##
 ## main()
 ##
@@ -147,13 +190,20 @@ if sys.argv[1] == "list":
 if sys.argv[1] == "add":
     todo_add(nodelist)
 elif sys.argv[1] == "rem":
-    todo_rem(nodelist)
+    nodelist = todo_rem(nodelist)
+elif sys.argv[1] == "mark":
+    todo_mark(nodelist)
+elif sys.argv[1] == "sort":
+    todo_sort(nodelist)
+elif sys.argv[1] == "grep":
+    todo_grep(nodelist)
 else:
     print(sys.argv[1] + ": Unsupported option.")
     exit(1)
 
 fd = open(todofile, "w")
 export(nodelist, fd)
+
 
 ##
 ## Parse commandline args and call appropriate functions

@@ -1,10 +1,10 @@
 * org-todo
   Emacs org-mode based command line todo application
 * TODOs
-  - Ability to mark items
+  - +Ability to mark items+
   - Ability to add deadline
-  - Grep TODOs
-  - Remove TODOs
-  - Search through directories to find current TODO file
+  - +Grep TODOs+
+  - +Remove TODOs+
+  - +Search through directories to find current TODO file+
   - +Add TODOs+
   - +Dump TODOs+
